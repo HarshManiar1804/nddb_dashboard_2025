@@ -1,8 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../store/store";
-import { setMapType } from "../store/mapSlice";
 import parseGeoraster from "georaster";
 import GeoRasterLayer from "georaster-layer-for-leaflet";
 import Rainbow from "rainbowvis.js";
@@ -45,7 +42,7 @@ const GeoTIFFLayer: React.FC = () => {
 
                 layerRef.current = layer;
                 layer.addTo(map);
-                layer.bringToFront(); // Ensures GeoTIFF layer is on top
+                layer.bringToFront();
                 map.fitBounds(layer.getBounds());
             });
 
@@ -60,22 +57,21 @@ const GeoTIFFLayer: React.FC = () => {
 };
 
 const MapSection: React.FC = () => {
-    const dispatch = useDispatch();
-    const mapType = useSelector((state: RootState) => state.map.mapType);
+    const [mapType, setMapType] = useState("satellite");
     const selectedMap = mapOptions.find((option) => option.name === mapType);
 
     return (
         <div className="h-full w-full relative rounded-lg">
             <MapContainer center={[22.56, 72.95]} zoom={13} className="h-full w-full rounded-lg z-0">
                 {selectedMap && <TileLayer key={selectedMap.url} url={selectedMap.url} />}
-                <GeoTIFFLayer /> {/* GeoTIFF Layer now persists */}
-                <Marker position={[22.54143, 72.96441]}>
+                <GeoTIFFLayer />
+                {/* <Marker position={[22.54143, 72.96441]}>
                     <Popup>
                         <strong>Name:</strong> Kigelia pinnata<br />
                         <strong>Coordinates:</strong> 22.54143, 72.96441<br />
                         <strong>Color:</strong> Red
                     </Popup>
-                </Marker>
+                </Marker> */}
             </MapContainer>
 
             <div className="absolute top-2 right-2 bg-white p-2 rounded-lg shadow-md flex space-x-2">
@@ -86,7 +82,7 @@ const MapSection: React.FC = () => {
                             name="mapType"
                             value={name}
                             checked={mapType === name}
-                            onChange={(e) => dispatch(setMapType(e.target.value))}
+                            onChange={(e) => setMapType(e.target.value)}
                         />
                         <span className="capitalize">{name}</span>
                     </label>
