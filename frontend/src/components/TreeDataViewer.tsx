@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { Botany, Species } from "../utils/utils";
+import React from "react";
+import { useTreeData } from "@/contexts/TreeDataContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,32 +7,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react"; // Loader icon
 
 const TreeDataViewer: React.FC = () => {
-    const [botanyList, setBotanyList] = useState<Botany[]>([]);
-    const [selectedBotany, setSelectedBotany] = useState<string[]>([]);
-    const [speciesList, setSpeciesList] = useState<Species[]>([]);
-    const [selectedSpecies, setSelectedSpecies] = useState<string[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
-
-    // Fetch botany list on component mount
-    useEffect(() => {
-        axios.get("http://localhost:3000/botany")
-            .then((response) => setBotanyList(response.data))
-            .catch((error) => console.error("Error fetching botany data:", error));
-    }, []);
-
-    // Fetch species when selectedBotany changes
-    useEffect(() => {
-        if (selectedBotany.length === 0) {
-            setSpeciesList([]); // Clear species list if no botany is selected
-            return;
-        }
-
-        setLoading(true);
-        axios.post("http://localhost:3000/species", { botanyIds: selectedBotany.map(Number) })
-            .then((response) => setSpeciesList(response.data))
-            .catch((error) => console.error("Error fetching species data:", error))
-            .finally(() => setLoading(false));
-    }, [selectedBotany]);
+    const {
+        botanyList, selectedBotany, setSelectedBotany,
+        speciesList, selectedSpecies, setSelectedSpecies,
+        loading
+    } = useTreeData();
 
     // Toggle botany selection
     const toggleBotanySelection = (id: string) => {
@@ -75,7 +53,7 @@ const TreeDataViewer: React.FC = () => {
             <div className="flex gap-2">
                 {/* Botany Dropdown */}
                 <div className="w-1/2">
-                    <Popover >
+                    <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full text-left cursor-pointer">
                                 {selectedBotany.length > 0
@@ -85,7 +63,6 @@ const TreeDataViewer: React.FC = () => {
                         </PopoverTrigger>
                         <PopoverContent className="w-64">
                             <ScrollArea className="h-40 overflow-auto border rounded p-2">
-
                                 {botanyList.map((botany) => (
                                     <div key={botany.id} className="flex items-center gap-2">
                                         <Checkbox
@@ -107,12 +84,12 @@ const TreeDataViewer: React.FC = () => {
                         </PopoverContent>
                     </Popover>
                 </div>
+
                 {/* Species Dropdown */}
                 <div className="w-1/2">
-
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-full text-left cursor-pointer ">
+                            <Button variant="outline" className="w-full text-left cursor-pointer">
                                 {selectedSpecies.length > 0
                                     ? `${selectedSpecies.length} Species selected`
                                     : "Select Species"}
@@ -120,8 +97,12 @@ const TreeDataViewer: React.FC = () => {
                         </PopoverTrigger>
                         <PopoverContent className="w-64">
                             <ScrollArea className="h-40 overflow-auto border rounded p-2">
-                                {speciesList.length == 0 ? (
-                                    <div className="flex justify-center items-center h-full top-1/2 left-1/2">
+                                {loading ? (
+                                    <div className="flex justify-center items-center h-full">
+                                        <Loader2 className="animate-spin w-5 h-5 text-gray-500" />
+                                    </div>
+                                ) : speciesList.length === 0 ? (
+                                    <div className="flex justify-center items-center h-full">
                                         <p>Select Botany First</p>
                                     </div>
                                 ) : (
@@ -147,12 +128,9 @@ const TreeDataViewer: React.FC = () => {
                         </PopoverContent>
                     </Popover>
                 </div>
-
             </div>
         </div>
     );
 };
 
 export default TreeDataViewer;
-
-

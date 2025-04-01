@@ -4,6 +4,9 @@ import parseGeoraster from "georaster";
 import GeoRasterLayer from "georaster-layer-for-leaflet";
 import Rainbow from "rainbowvis.js";
 import "leaflet/dist/leaflet.css";
+import { useTreeData } from "@/contexts/TreeDataContext"; // Adjust the import path as necessary
+import L from "leaflet";
+
 
 const mapOptions = [
     { name: "satellite", url: "https://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}" },
@@ -31,7 +34,7 @@ const GeoTIFFLayer: React.FC = () => {
                 const layer = new GeoRasterLayer({
                     georaster,
                     opacity: 0.6,
-                    pixelValuesToColorFn: (vals) =>
+                    pixelValuesToColorFn: (vals: any) =>
                         vals[0] <= 0 ? null : "#" + rainbow.colourAt(Math.round(vals[0])),
                     resolution: 512,
                 });
@@ -59,19 +62,31 @@ const GeoTIFFLayer: React.FC = () => {
 const MapSection: React.FC = () => {
     const [mapType, setMapType] = useState("satellite");
     const selectedMap = mapOptions.find((option) => option.name === mapType);
+    const { treeCoordinates } = useTreeData(); // Get coordinates from context
 
+    // Use Leaflet's default marker with resized dimensions
+    // const customIcon = L.icon({
+    //     iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+    //     iconSize: [24, 32], // Set marker size
+    //     iconAnchor: [8, 16], // Adjust anchor so it points correctly
+    //     popupAnchor: [0, -16],
+    // });
+    // Handle marker click event
     return (
         <div className="h-full w-full relative rounded-lg">
             <MapContainer center={[22.56, 72.95]} zoom={13} className="h-full w-full rounded-lg z-0">
                 {selectedMap && <TileLayer key={selectedMap.url} url={selectedMap.url} />}
                 <GeoTIFFLayer />
-                {/* <Marker position={[22.54143, 72.96441]}>
-                    <Popup>
-                        <strong>Name:</strong> Kigelia pinnata<br />
-                        <strong>Coordinates:</strong> 22.54143, 72.96441<br />
-                        <strong>Color:</strong> Red
-                    </Popup>
-                </Marker> */}
+
+                {/* Display markers for all tree coordinates */}
+                {treeCoordinates.map(({ latitude, longitude }, index) => (
+                    <Marker key={index} position={[latitude, longitude]} >
+                        <Popup>
+                            <strong>Coordinates:</strong> {latitude}, {longitude}
+                        </Popup>
+                    </Marker>
+
+                ))}
             </MapContainer>
 
             <div className="absolute top-2 right-2 bg-white p-2 rounded-lg shadow-md flex space-x-2">

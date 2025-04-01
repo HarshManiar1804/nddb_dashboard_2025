@@ -54,6 +54,31 @@ app.post("/species", async (req, res) => {
   }
 });
 
+app.post("/geolocation", async (req, res) => {
+  try {
+    const { speciesIDs } = req.body; // Extract species IDs from request body
+
+    if (!speciesIDs || !Array.isArray(speciesIDs) || speciesIDs.length === 0) {
+      return res.status(400).json({ error: "speciesIDs array is required" });
+    }
+
+    // SQL Query
+    const query = `
+      SELECT Latitude, Longitude 
+      FROM Trees_Geolocation 
+      WHERE SpeciesID = ANY($1);
+    `;
+
+    // Execute Query
+    const result = await pool.query(query, [speciesIDs]);
+
+    // Return Results
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error fetching geolocation:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 // Start the server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
