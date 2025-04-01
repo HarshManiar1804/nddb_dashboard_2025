@@ -26,6 +26,34 @@ app.get("/botany", async (req, res) => {
   }
 });
 
+app.post("/species", async (req, res) => {
+  try {
+    const { botanyIds } = req.body;
+
+    if (!Array.isArray(botanyIds) || botanyIds.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "botanyIds must be a non-empty array" });
+    }
+
+    // Validate that all elements are numbers
+    if (botanyIds.some(isNaN)) {
+      return res.status(400).json({ error: "Invalid botanyIds format" });
+    }
+
+    // Query the database
+    const result = await pool.query(
+      `SELECT id, scientificname FROM species WHERE botanyid = ANY($1)`,
+      [botanyIds]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error fetching species list:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
