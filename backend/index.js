@@ -1,84 +1,24 @@
-require("dotenv").config();
 const express = require("express");
-const { Pool } = require("pg");
 const cors = require("cors");
 
-const app = express();
-const port = 3000;
+const botanyRoutes = require("./routes/botanyRoutes");
+const speciesRoutes = require("./routes/speciesRoutes");
+const geolocationRoutes = require("./routes/geolocationRoutes");
+const statsRoutes = require("./routes/statsRoutes");
 
-// PostgreSQL connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+const app = express();
+const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Route to fetch botany list
-app.get("/botany", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT * FROM Botany ORDER BY ID ASC");
-    res.json(result.rows);
-  } catch (error) {
-    console.error("Error fetching botany list:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+// Routes
+app.use("/botany", botanyRoutes);
+app.use("/species", speciesRoutes);
+app.use("/geolocation", geolocationRoutes);
+app.use("/stats", statsRoutes);
 
-app.post("/species", async (req, res) => {
-  try {
-    const { botanyIds } = req.body;
-
-    if (!Array.isArray(botanyIds) || botanyIds.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "botanyIds must be a non-empty array" });
-    }
-
-    // Validate that all elements are numbers
-    if (botanyIds.some(isNaN)) {
-      return res.status(400).json({ error: "Invalid botanyIds format" });
-    }
-
-    // Query the database
-    const result = await pool.query(
-      `SELECT id, scientificname FROM species WHERE botanyid = ANY($1)`,
-      [botanyIds]
-    );
-
-    res.json(result.rows);
-  } catch (error) {
-    console.error("Error fetching species list:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-app.post("/geolocation", async (req, res) => {
-  try {
-    const { speciesIDs } = req.body; // Extract species IDs from request body
-
-    if (!speciesIDs || !Array.isArray(speciesIDs) || speciesIDs.length === 0) {
-      return res.status(400).json({ error: "speciesIDs array is required" });
-    }
-
-    // SQL Query
-    const query = `
-      SELECT Latitude, Longitude 
-      FROM Trees_Geolocation 
-      WHERE SpeciesID = ANY($1);
-    `;
-
-    // Execute Query
-    const result = await pool.query(query, [speciesIDs]);
-
-    // Return Results
-    res.json(result.rows);
-  } catch (error) {
-    console.error("Error fetching geolocation:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
 // Start the server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
