@@ -6,7 +6,7 @@ const TitleBranding: React.FC = () => {
             {/* Logo on the left */}
             <img src="/logo.png" alt="NDDB Logo" className="h-10 my-4" />
             {/* Title centered */}
-            <div className="flex-1 text-black text-center text-2xl font-semibold font-[Times_New_Roman]">
+            <div className="flex-1 text-[#00958F] text-center text-2xl font-semibold font-[Times_New_Roman] ">
                 NDDB DIGITAL BIODIVERSITY MAP
             </div>
         </header>

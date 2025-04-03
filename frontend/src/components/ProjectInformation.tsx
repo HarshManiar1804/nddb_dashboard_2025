@@ -22,7 +22,7 @@ const ProjectInformation: React.FC = () => {
     return (
         <div className="p-4 bg-white shadow-lg rounded-xl max-w-md mx-auto border border-gray-100">
             <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
-                <Users className="w-5 h-5 mr-2 text-green-600" />
+                <Users className="w-5 h-5 mr-2 text-[#00958F]" />
                 About the Project
             </h2>
 
@@ -32,7 +32,7 @@ const ProjectInformation: React.FC = () => {
                 <div className="space-y-3">
                     <div className="flex items-center py-1 border-b border-gray-100">
                         <div className="flex items-center text-gray-700 w-48">
-                            <Trees className="w-4 h-4 mr-2 text-green-600" />
+                            <Trees className="w-4 h-4 mr-2 text-[#00958F]" />
                             <span className="text-sm font-medium">Tree Species:</span>
                         </div>
                         <span className="text-sm font-semibold ml-2">{speciesCount}</span>
@@ -40,7 +40,7 @@ const ProjectInformation: React.FC = () => {
 
                     <div className="flex items-center py-1 border-b border-gray-100">
                         <div className="flex items-center text-gray-700 w-48">
-                            <Trees className="w-4 h-4 mr-2 text-green-600" />
+                            <Trees className="w-4 h-4 mr-2 text-[#00958F]" />
                             <span className="text-sm font-medium">Total No. of Trees:</span>
                         </div>
                         <span className="text-sm font-semibold ml-2">{treeCount}</span>
@@ -48,7 +48,7 @@ const ProjectInformation: React.FC = () => {
 
                     <div className="flex items-center py-1">
                         <div className="flex items-center text-gray-700 w-48">
-                            <Bird className="w-4 h-4 mr-2 text-green-600" />
+                            <Bird className="w-4 h-4 mr-2 text-[#00958F]" />
                             <span className="text-sm font-medium">Bird Species:</span>
                         </div>
                         <span className="text-sm font-semibold ml-2">{birdCount}</span>

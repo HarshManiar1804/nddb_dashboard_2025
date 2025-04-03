@@ -50,7 +50,7 @@ const TreeDataViewer: React.FC = () => {
     return (
         <div className="p-4 bg-white shadow-lg rounded-xl max-w-md mx-auto border border-gray-100">
             <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
-                <Trees className="w-5 h-5 mr-2 text-green-600" />
+                <Trees className="w-5 h-5 mr-2 text-[#00958F]" />
                 Tree Data Viewer
             </h2>
 
@@ -112,7 +112,7 @@ const TreeDataViewer: React.FC = () => {
                                 disabled={loading || botanyList.length === 0}
                             >
                                 <div className="flex items-center">
-                                    <Leaf className="w-4 h-4 mr-2 text-green-600" />
+                                    <Leaf className="w-4 h-4 mr-2 text-[#00958F]" />
                                     {loading
                                         ? "Loading species..."
                                         : selectedSpecies.length > 0

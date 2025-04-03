@@ -35,10 +35,13 @@ exports.getSpeciesDetails = async (req, res) => {
         s.*, 
         tg.Latitude, 
         tg.Longitude,
-        ti.ImageURL AS TreeImageURL
+        ti.ImageURL AS TreeImageURL,
+        ss.SymbolImageURL,
+        ss.ColorCode
       FROM Species s
       JOIN Trees_Geolocation tg ON s.ID = tg.SpeciesID
       LEFT JOIN trees_image ti ON s.ID = ti.SpeciesID AND ti.imagetype = 'Tree'
+      LEFT JOIN species_symbols ss ON s.ID = ss.SpeciesID
       WHERE tg.ID = $1;
     `;
 

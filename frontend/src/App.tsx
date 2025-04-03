@@ -10,7 +10,7 @@ import type { MapType } from "./utils/utils";
 const App: React.FC = () => {
   const [mapType, setMapType] = useState<MapType>("satellite");
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen" style={{ fontFamily: "Univers Condensed" }}>
       <TitleBranding />
       <div className="flex h-screen">
         <div className="w-full md:w-1/4 space-y-2 p-2">

@@ -1,14 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import "leaflet/dist/leaflet.css";
 import { useTreeData } from "@/contexts/TreeDataContext";
 import Rainbow from "rainbowvis.js";
-import "leaflet/dist/leaflet.css";
 import parseGeoraster from "georaster";
 import GeoRasterLayer from "georaster-layer-for-leaflet";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { X } from "lucide-react";
 import { Button } from "./ui/button";
 import { MapType } from "@/utils/utils";
+import L from "leaflet";
 
 const mapOptions = [
     { name: "satellite", url: "https://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}" },
@@ -61,7 +61,21 @@ const GeoTIFFLayer: React.FC = () => {
     return null;
 };
 
-
+// Create a lazy loaded marker component
+const LazyMarker: React.FC<{
+    position: [number, number];
+    icon: L.Icon;
+    eventHandlers: any;
+    popupContent: string;
+}> = ({ position, icon, eventHandlers, popupContent }) => {
+    return (
+        <Marker position={position} icon={icon} eventHandlers={eventHandlers}>
+            <Popup>
+                <div dangerouslySetInnerHTML={{ __html: popupContent }} />
+            </Popup>
+        </Marker>
+    );
+};
 
 const MapSection: React.FC<MapType> = ({ mapType }) => {
     const selectedMap = mapOptions.find((option) => option.name === mapType) || mapOptions[0];
@@ -69,6 +83,93 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
     const [selectedTree, setSelectedTree] = useState<any | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [markerIcons, setMarkerIcons] = useState<{ [key: number]: L.Icon }>({});
+    const [loadingMarkers, setLoadingMarkers] = useState(true);
+
+    // Define the default icon once
+    const defaultIcon = useMemo(() => L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    }), []);
+
+    // Function to create custom icon URL
+    const createCustomIconUrl = (symbolUrl: string, colorCode: string) => {
+        // Extract the base URL without color parameter
+        const baseUrl = symbolUrl && symbolUrl.includes('?') ?
+            symbolUrl.split('&color=')[0] :
+            "https://img.icons8.com/?size=100&id=60003&format=png";
+
+        // Append color code (remove # if present)
+        const colorHex = colorCode ? colorCode.replace('#', '') : '000000';
+        return `${baseUrl}&color=${colorHex}`;
+    };
+
+    // Create an icon object from URL
+    const createLeafletIcon = (iconUrl: string) => {
+        return L.icon({
+            iconUrl,
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32]
+        });
+    };
+
+    // Fetch all tree marker icons when component mounts
+    useEffect(() => {
+        const fetchAllTreeIcons = async () => {
+            setLoadingMarkers(true);
+
+            // Use a batch processing approach to avoid overwhelming the server
+            const batchSize = 10;
+            const totalTrees = treeCoordinates.length;
+            const batches = Math.ceil(totalTrees / batchSize);
+
+            const icons: { [key: number]: L.Icon } = {};
+
+            for (let i = 0; i < batches; i++) {
+                const start = i * batchSize;
+                const end = Math.min(start + batchSize, totalTrees);
+
+                // Process this batch
+                const batchPromises = [];
+
+                for (let j = start; j < end; j++) {
+                    const treeGeoID = j + 1; // Adjust index for API
+                    batchPromises.push(
+                        fetch(`http://localhost:3000/species/details/${treeGeoID}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.symbolimageurl && data.colorcode) {
+                                    const iconUrl = createCustomIconUrl(data.symbolimageurl, data.colorcode);
+                                    icons[j] = createLeafletIcon(iconUrl);
+                                } else {
+                                    icons[j] = defaultIcon;
+                                }
+                            })
+                            .catch(() => {
+                                icons[j] = defaultIcon;
+                            })
+                    );
+                }
+
+                // Wait for this batch to complete
+                await Promise.allSettled(batchPromises);
+
+                // Update icons state incrementally to show progress
+                setMarkerIcons(prev => ({ ...prev, ...icons }));
+            }
+
+            setLoadingMarkers(false);
+        };
+
+        if (treeCoordinates.length > 0) {
+            fetchAllTreeIcons();
+        }
+    }, [treeCoordinates, defaultIcon]);
 
     const fetchTreeDetails = async (treeGeoID: number) => {
         setLoading(true);
@@ -80,7 +181,6 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
             if (!response.ok) {
                 throw new Error(data.error || "Failed to fetch tree details");
             }
-
             setSelectedTree(data);
         } catch (err: any) {
             setError(err.message);
@@ -88,6 +188,11 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
             setLoading(false);
         }
     };
+
+    // Calculate how many markers are loaded
+    const loadedMarkersCount = Object.keys(markerIcons).length;
+    const totalMarkersCount = treeCoordinates.length;
+    const loadingPercentage = Math.round((loadedMarkersCount / totalMarkersCount) * 100) || 0;
 
     return (
         <div className="h-full w-full relative rounded-lg">
@@ -98,19 +203,36 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
 
                 {/* Display markers */}
                 {treeCoordinates.map((tree, index) => (
-                    <Marker
+                    <LazyMarker
                         key={index}
                         position={[tree.latitude, tree.longitude]}
+                        icon={markerIcons[index] || defaultIcon}
                         eventHandlers={{
                             click: () => fetchTreeDetails(index + 1),
                         }}
-                    >
-                        <Popup>
-                            <strong>Coordinates:</strong> {tree.latitude}, {tree.longitude}
-                        </Popup>
-                    </Marker>
+                        popupContent={`<strong>Coordinates:</strong> ${tree.latitude}, ${tree.longitude}`}
+                    />
                 ))}
             </MapContainer>
+
+            {/* Loading overlay */}
+            {loadingMarkers && treeCoordinates.length > 0 && (
+                <div className="absolute top-5 left-1/2 transform -translate-x-1/2 bg-white p-3 rounded-lg shadow-md z-10 flex items-center space-x-3">
+                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-green-500"></div>
+                    <div>
+                        <div className="text-sm font-medium">Loading tree markers</div>
+                        <div className="h-2 w-48 bg-gray-200 rounded overflow-hidden">
+                            <div
+                                className="h-full bg-green-500 transition-all duration-300"
+                                style={{ width: `${loadingPercentage}%` }}
+                            ></div>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                            {loadedMarkersCount} of {totalMarkersCount} loaded ({loadingPercentage}%)
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Sidebar for Tree Details */}
             <div
@@ -157,6 +279,18 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
                                     <p className="text-sm text-green-700 mt-1">हिंदी: {selectedTree.hindiname}</p>
                                 )}
                             </div>
+
+                            {/* Symbol preview if available */}
+                            {selectedTree.symbolimageurl && selectedTree.colorcode && (
+                                <div className="flex items-center justify-center p-2 bg-gray-50 rounded-lg">
+                                    <img
+                                        src={`${selectedTree.symbolimageurl}&color=${selectedTree.colorcode.replace('#', '')}`}
+                                        alt="Tree Symbol"
+                                        className="h-10 w-10"
+                                    />
+                                    <span className="ml-2 text-sm text-gray-600">Tree Symbol</span>
+                                </div>
+                            )}
 
                             {/* Details section */}
                             <div className="space-y-3">

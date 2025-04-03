@@ -2,7 +2,7 @@ import { MapType } from "@/utils/utils";
 import { MapPlus } from "lucide-react";
 import React from "react";
 
-const mapOptions = ["satellite", "hybrid", "terrain",];
+const mapOptions = ["satellite", "hybrid", "terrain"];
 
 interface MapSelectionProps {
     mapType: MapType;
@@ -12,9 +12,9 @@ interface MapSelectionProps {
 const MapSelection: React.FC<MapSelectionProps> = ({ mapType, setMapType }) => {
     return (
         <div className="p-4 bg-white shadow-lg rounded-xl max-w-md mx-auto border border-gray-100">
-            <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
-                <MapPlus className="w-5 h-5 mr-2 text-green-600" />
-                Select Map
+            <h2 className="text-xl font-serif mb-4 text-gray-800 flex items-center">
+                <MapPlus className="w-5 h-5 mr-2 text-[#00958F]" />
+                <span className="text-[#00958F]">Select Map</span>
             </h2>
             <div className="space-y-2">
                 {mapOptions.map((option) => (
