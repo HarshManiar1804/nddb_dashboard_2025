@@ -5,6 +5,7 @@ import { Botany, Species } from "../utils/utils";
 interface TreeCoordinates {
     latitude: number;
     longitude: number;
+    treename: string;
 }
 
 interface TreeDataContextType {

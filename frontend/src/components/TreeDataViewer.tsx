@@ -65,7 +65,7 @@ const TreeDataViewer: React.FC = () => {
                                 className="w-full justify-between text-left bg-gray-50 hover:bg-gray-100 border-gray-200"
                             >
                                 <div className="flex items-center">
-                                    <Trees className="w-4 h-4 mr-2 text-green-600" />
+                                    <Trees className="w-4 h-4 mr-2 text-[#00958F]" />
                                     {selectedBotany.length > 0
                                         ? `${selectedBotany.length} Botany selected`
                                         : "Select Botany"}
@@ -129,7 +129,7 @@ const TreeDataViewer: React.FC = () => {
                             <ScrollArea className="h-48 overflow-auto p-2">
                                 {loading ? (
                                     <div className="flex justify-center items-center h-24">
-                                        <Loader2 className="animate-spin w-5 h-5 text-green-600" />
+                                        <Loader2 className="animate-spin w-5 h-5 text-[#00958F]" />
                                     </div>
                                 ) : speciesList.length === 0 ? (
                                     <div className="flex flex-col justify-center items-center h-24 text-gray-500">
@@ -142,7 +142,7 @@ const TreeDataViewer: React.FC = () => {
                                             <Checkbox
                                                 checked={selectedSpecies.includes(species.id.toString())}
                                                 onCheckedChange={() => toggleSpeciesSelection(species.id.toString())}
-                                                className="text-green-600"
+                                                className="text-[#00958F]"
                                             />
                                             <span className="text-sm italic">{species.scientificname}</span>
                                         </div>

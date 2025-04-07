@@ -7,7 +7,7 @@ import GeoRasterLayer from "georaster-layer-for-leaflet";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { X } from "lucide-react";
 import { Button } from "./ui/button";
-import { MapType } from "@/utils/utils";
+import { campusColors, MapType } from "@/utils/utils";
 import L from "leaflet";
 
 const mapOptions = [
@@ -97,22 +97,24 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
     }), []);
 
     // Function to create custom icon URL
-    const createCustomIconUrl = (symbolUrl: string, colorCode: string) => {
+    // Function to create custom icon URL
+    const createCustomIconUrl = (colorArray: string[], index: number) => {
         // Extract the base URL without color parameter
-        const baseUrl = symbolUrl && symbolUrl.includes('?') ?
-            symbolUrl.split('&color=')[0] :
-            "https://img.icons8.com/?size=100&id=60003&format=png";
+        const baseUrl = "https://img.icons8.com/?size=100&id=78599&format=png";
+        // Get color code from array based on index (using modulo to cycle through colors)
+        const colorIndex = index % colorArray.length;
 
-        // Append color code (remove # if present)
-        const colorHex = colorCode ? colorCode.replace('#', '') : '000000';
+        // Get the color at the calculated index and remove # if present
+        const colorHex = colorArray[colorIndex].replace('#', '');
+
+        // Return the URL with color parameter
         return `${baseUrl}&color=${colorHex}`;
     };
-
     // Create an icon object from URL
     const createLeafletIcon = (iconUrl: string) => {
         return L.icon({
             iconUrl,
-            iconSize: [32, 32],
+            iconSize: [16, 16],
             iconAnchor: [16, 32],
             popupAnchor: [0, -32]
         });
@@ -120,6 +122,7 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
 
     // Fetch all tree marker icons when component mounts
     useEffect(() => {
+
         const fetchAllTreeIcons = async () => {
             setLoadingMarkers(true);
 
@@ -129,6 +132,8 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
             const batches = Math.ceil(totalTrees / batchSize);
 
             const icons: { [key: number]: L.Icon } = {};
+            const markerTypes = new Map(); // To track unique marker types
+            let typeCounter = 0; // Counter for unique marker types
 
             for (let i = 0; i < batches; i++) {
                 const start = i * batchSize;
@@ -143,8 +148,20 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
                         fetch(`http://localhost:3000/species/details/${treeGeoID}`)
                             .then(response => response.json())
                             .then(data => {
-                                if (data.symbolimageurl && data.colorcode) {
-                                    const iconUrl = createCustomIconUrl(data.symbolimageurl, data.colorcode);
+                                if (data.symbolimageurl) {
+                                    // Create a type identifier (could be species, genus, or any other property)
+                                    const markerType = data.scientificname || data.treename || 'unknown';
+
+                                    // If this type hasn't been seen before, assign it a new color index
+                                    if (!markerTypes.has(markerType)) {
+                                        markerTypes.set(markerType, typeCounter++);
+                                    }
+
+                                    // Get the color index for this marker type
+                                    const colorIndex = markerTypes.get(markerType);
+
+                                    // Create the icon URL with the appropriate color from the array
+                                    const iconUrl = createCustomIconUrl(campusColors, colorIndex);
                                     icons[j] = createLeafletIcon(iconUrl);
                                 } else {
                                     icons[j] = defaultIcon;
@@ -209,8 +226,14 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
                         icon={markerIcons[index] || defaultIcon}
                         eventHandlers={{
                             click: () => fetchTreeDetails(index + 1),
+                            mouseover: (e) => {
+                                e.target.openPopup();
+                            },
+                            mouseout: (e) => {
+                                e.target.closePopup();
+                            }
                         }}
-                        popupContent={`<strong>Coordinates:</strong> ${tree.latitude}, ${tree.longitude}`}
+                        popupContent={`<strong>Tree Name :</strong> ${tree.treename}<br/><strong>Coordinates :</strong> ${tree.latitude}, ${tree.longitude}`}
                     />
                 ))}
             </MapContainer>
@@ -280,17 +303,7 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
                                 )}
                             </div>
 
-                            {/* Symbol preview if available */}
-                            {selectedTree.symbolimageurl && selectedTree.colorcode && (
-                                <div className="flex items-center justify-center p-2 bg-gray-50 rounded-lg">
-                                    <img
-                                        src={`${selectedTree.symbolimageurl}&color=${selectedTree.colorcode.replace('#', '')}`}
-                                        alt="Tree Symbol"
-                                        className="h-10 w-10"
-                                    />
-                                    <span className="ml-2 text-sm text-gray-600">Tree Symbol</span>
-                                </div>
-                            )}
+
 
                             {/* Details section */}
                             <div className="space-y-3">

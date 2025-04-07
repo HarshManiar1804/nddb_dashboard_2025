@@ -8,8 +8,20 @@ exports.getGeolocationBySpecies = async (req, res) => {
       return res.status(400).json({ error: "speciesIDs array is required" });
     }
 
-    const query =
-      "SELECT Latitude, Longitude FROM Trees_Geolocation WHERE SpeciesID = ANY($1)";
+    const query = `
+      SELECT 
+        s.ID AS SpeciesID,
+        s.TreeName,
+        t.Latitude,
+        t.Longitude
+      FROM 
+        Trees_Geolocation t
+      INNER JOIN 
+        Species s ON t.SpeciesID = s.ID
+      WHERE 
+        s.ID = ANY($1)
+    `;
+
     const result = await pool.query(query, [speciesIDs]);
 
     res.json(result.rows);
