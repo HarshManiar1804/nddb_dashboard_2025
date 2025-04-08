@@ -49,15 +49,16 @@ const TreeDataViewer: React.FC = () => {
 
     return (
         <div className="p-4 bg-white shadow-lg rounded-xl max-w-md mx-auto border border-gray-100">
-            <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
+
+            <h2 className="text-xl font-serif mb-4 text-gray-800 flex items-center">
                 <Trees className="w-5 h-5 mr-2 text-[#00958F]" />
-                Tree Data Viewer
+                <span className="text-[#00958F]">Tree Data Viewer</span>
             </h2>
 
             <div className="space-y-4">
                 {/* Botany Dropdown */}
                 <div className="w-full">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Botany Selection</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Family Selection</label>
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button
@@ -67,15 +68,15 @@ const TreeDataViewer: React.FC = () => {
                                 <div className="flex items-center">
                                     <Trees className="w-4 h-4 mr-2 text-[#00958F]" />
                                     {selectedBotany.length > 0
-                                        ? `${selectedBotany.length} Botany selected`
-                                        : "Select Botany"}
+                                        ? `${selectedBotany.length} Family selected`
+                                        : "Select Family"}
                                 </div>
                                 <ChevronDown className="h-4 w-4 opacity-50" />
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-full p-0" align="start">
                             <div className="p-2 bg-gray-50 border-b">
-                                <h3 className="font-medium text-sm">Botany Categories</h3>
+                                <h3 className="font-medium text-sm">Family Categories</h3>
                             </div>
                             <ScrollArea className="h-48 overflow-auto p-2">
                                 {botanyList.map((botany) => (
@@ -134,7 +135,7 @@ const TreeDataViewer: React.FC = () => {
                                 ) : speciesList.length === 0 ? (
                                     <div className="flex flex-col justify-center items-center h-24 text-gray-500">
                                         <Trees className="w-8 h-8 mb-2 opacity-50" />
-                                        <p className="text-sm">Select Botany First</p>
+                                        <p className="text-sm">Select Family First</p>
                                     </div>
                                 ) : (
                                     speciesList.map((species) => (

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Trees, Users, Bird } from "lucide-react";
+import { Trees, FileText, Bird } from "lucide-react";
 
 const ProjectInformation: React.FC = () => {
     const [speciesCount, setSpeciesCount] = useState<number>(0);
@@ -21,11 +21,11 @@ const ProjectInformation: React.FC = () => {
 
     return (
         <div className="p-4 bg-white shadow-lg rounded-xl max-w-md mx-auto border border-gray-100">
-            <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
-                <Users className="w-5 h-5 mr-2 text-[#00958F]" />
-                About the Project
-            </h2>
+            <h2 className="text-xl font-serif mb-4 text-gray-800 flex items-center">
+                <FileText className="w-5 h-5 mr-2 text-[#00958F]" />
 
+                <span className="text-[#00958F]">About The Project</span>
+            </h2>
             {loading ? (
                 <p className="text-center text-gray-500">Loading...</p>
             ) : (

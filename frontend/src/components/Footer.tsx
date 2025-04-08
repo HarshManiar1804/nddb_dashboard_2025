@@ -9,3 +9,8 @@ const Footer: React.FC = () => {
 };
 
 export default Footer;
+
+
+// select map - select map theme
+// tree data viewer  - species data viewer
+// botany selection - family selection
