@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { Botany, Species } from "../utils/utils";
 
+
 interface TreeCoordinates {
     latitude: number;
     longitude: number;
@@ -29,12 +30,14 @@ export const TreeDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const [treeCoordinates, setTreeCoordinates] = useState<TreeCoordinates[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
+    const backendUrl = 'http://13.60.191.45:3000';
+
     // Fetch botany list on mount
     useEffect(() => {
-        axios.get("http://localhost:3000/botany")
+        axios.get(`${backendUrl}/botany`)
             .then((response) => setBotanyList(response.data))
             .catch((error) => console.error("Error fetching botany data:", error));
-    }, []);
+    }, [backendUrl]);
 
     // Fetch species when selectedBotany changes
     useEffect(() => {
@@ -44,11 +47,11 @@ export const TreeDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
 
         setLoading(true);
-        axios.post("http://localhost:3000/species", { botanyIds: selectedBotany.map(Number) })
+        axios.post(`${backendUrl}/species`, { botanyIds: selectedBotany.map(Number) })
             .then((response) => setSpeciesList(response.data))
             .catch((error) => console.error("Error fetching species data:", error))
             .finally(() => setLoading(false));
-    }, [selectedBotany]);
+    }, [selectedBotany, backendUrl]);
 
     // Fetch tree coordinates when selectedSpecies changes
     useEffect(() => {
@@ -58,11 +61,11 @@ export const TreeDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
 
         setLoading(true);
-        axios.post("http://localhost:3000/geolocation", { speciesIDs: selectedSpecies.map(Number) })
+        axios.post(`${backendUrl}/geolocation`, { speciesIDs: selectedSpecies.map(Number) })
             .then((response) => setTreeCoordinates(response.data))
             .catch((error) => console.error("Error fetching geolocation data:", error))
             .finally(() => setLoading(false));
-    }, [selectedSpecies]);
+    }, [selectedSpecies, backendUrl]);
 
     return (
         <TreeDataContext.Provider value={{

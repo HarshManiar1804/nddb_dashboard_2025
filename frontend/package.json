@@ -19,6 +19,7 @@
     "@types/react-leaflet": "^2.8.3",
     "axios": "^1.8.4",
     "class-variance-authority": "^0.7.1",
+    "dotenv": "^16.5.0",
     "georaster": "^1.6.0",
     "georaster-layer-for-leaflet": "^3.10.0",
     "geotiff": "^2.1.3",
