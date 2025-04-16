@@ -35,14 +35,11 @@ exports.getSpeciesDetails = async (req, res) => {
         s.*, 
         tg.Latitude, 
         tg.Longitude,
-        ti.ImageURL AS TreeImageURL,
-        ss.SymbolImageURL,
-        ss.ColorCode
+        ti.ImageURL AS TreeImageURL
       FROM Species s
-      JOIN Trees_Geolocation tg ON s.ID = tg.SpeciesID
-      LEFT JOIN trees_image ti ON s.ID = ti.SpeciesID AND ti.imagetype = 'Tree'
-      LEFT JOIN species_symbols ss ON s.ID = ss.SpeciesID
-      WHERE tg.ID = $1;
+      JOIN trees_geolocation tg ON s.id = tg.speciesid
+      LEFT JOIN trees_image ti ON s.id = ti.speciesid AND ti.imagetype = 'Tree'
+      WHERE tg.id = $1;
     `;
 
     const result = await pool.query(query, [treeGeoID]);
