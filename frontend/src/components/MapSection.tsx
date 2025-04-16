@@ -226,10 +226,10 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
                         icon={markerIcons[index] || defaultIcon}
                         eventHandlers={{
                             click: () => fetchTreeDetails(index + 1),
-                            mouseover: (e) => {
+                            mouseover: (e: L.LeafletMouseEvent) => {
                                 e.target.openPopup();
                             },
-                            mouseout: (e) => {
+                            mouseout: (e: L.LeafletMouseEvent) => {
                                 e.target.closePopup();
                             }
                         }}
