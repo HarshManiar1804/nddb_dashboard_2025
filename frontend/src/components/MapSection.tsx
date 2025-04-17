@@ -145,7 +145,7 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
                 for (let j = start; j < end; j++) {
                     const treeGeoID = j + 1; // Adjust index for API
                     batchPromises.push(
-                        fetch(`http://13.60.191.45:3000/species/details/${treeGeoID}`)
+                        fetch(`http://16.170.225.66:3000/species/details/${treeGeoID}`)
                             .then(response => response.json())
                             .then(data => {
                                 if (data.symbolimageurl) {
@@ -192,7 +192,7 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
         setLoading(true);
         setError("");
         try {
-            const response = await fetch(`http://13.60.191.45:3000/species/details/${treeGeoID + 1}`);
+            const response = await fetch(`http://16.170.225.66:3000/species/details/${treeGeoID + 1}`);
             const data = await response.json();
 
             if (!response.ok) {

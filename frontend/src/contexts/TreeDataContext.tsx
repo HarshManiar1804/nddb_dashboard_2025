@@ -30,7 +30,7 @@ export const TreeDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const [treeCoordinates, setTreeCoordinates] = useState<TreeCoordinates[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
-    const backendUrl = 'http://13.60.191.45:3000';
+    const backendUrl = 'http://16.170.225.66:3000';
     // const backendUrl = 'http://localhost:3000';
 
     // Fetch botany list on mount
