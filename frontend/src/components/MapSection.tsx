@@ -84,7 +84,6 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [markerIcons, setMarkerIcons] = useState<{ [key: number]: L.Icon }>({});
-    const [loadingMarkers, setLoadingMarkers] = useState(true);
 
     // Define the default icon once
     const defaultIcon = useMemo(() => L.icon({
@@ -96,36 +95,38 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
         shadowSize: [41, 41]
     }), []);
 
-    // Function to create custom icon URL
-    // Function to create custom icon URL
+    // Fixed function to create custom icon URL with proper color formatting for tree markers
     const createCustomIconUrl = (colorArray: string[], index: number) => {
-        // Extract the base URL without color parameter
-        const baseUrl = "https://img.icons8.com/?size=100&id=78599&format=png";
-        // Get color code from array based on index (using modulo to cycle through colors)
+        // Create colored circle SVG
         const colorIndex = index % colorArray.length;
+        const color = colorArray[colorIndex].replace('#', '');
 
-        // Get the color at the calculated index and remove # if present
-        const colorHex = colorArray[colorIndex].replace('#', '');
+        // Instead of using Icons8 with color parameter, create a simple colored circle marker
+        // This ensures we don't rely on external API color parameter support
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="#${color}" stroke="#000" stroke-width="1"/>
+            </svg>
+        `;
 
-        // Return the URL with color parameter
-        return `${baseUrl}&color=${colorHex}`;
+        // Convert SVG to data URL
+        const encodedSVG = encodeURIComponent(svg);
+        return `data:image/svg+xml;charset=UTF-8,${encodedSVG}`;
     };
+
     // Create an icon object from URL
     const createLeafletIcon = (iconUrl: string) => {
         return L.icon({
             iconUrl,
-            iconSize: [16, 16],
-            iconAnchor: [16, 32],
-            popupAnchor: [0, -32]
+            iconSize: [24, 24],
+            iconAnchor: [12, 24],
+            popupAnchor: [0, -24]
         });
     };
 
     // Fetch all tree marker icons when component mounts
     useEffect(() => {
-
         const fetchAllTreeIcons = async () => {
-            setLoadingMarkers(true);
-
             // Use a batch processing approach to avoid overwhelming the server
             const batchSize = 10;
             const totalTrees = treeCoordinates.length;
@@ -145,27 +146,23 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
                 for (let j = start; j < end; j++) {
                     const treeGeoID = j + 1; // Adjust index for API
                     batchPromises.push(
-                        fetch(`http://16.170.225.66:3000/species/details/${treeGeoID}`)
+                        fetch(`http://localhost:3000/species/details/${treeGeoID}`)
                             .then(response => response.json())
                             .then(data => {
-                                if (data.symbolimageurl) {
-                                    // Create a type identifier (could be species, genus, or any other property)
-                                    const markerType = data.scientificname || data.treename || 'unknown';
+                                // Create a type identifier (could be species, genus, or any other property)
+                                const markerType = data.scientificname || data.treename || 'unknown';
 
-                                    // If this type hasn't been seen before, assign it a new color index
-                                    if (!markerTypes.has(markerType)) {
-                                        markerTypes.set(markerType, typeCounter++);
-                                    }
-
-                                    // Get the color index for this marker type
-                                    const colorIndex = markerTypes.get(markerType);
-
-                                    // Create the icon URL with the appropriate color from the array
-                                    const iconUrl = createCustomIconUrl(campusColors, colorIndex);
-                                    icons[j] = createLeafletIcon(iconUrl);
-                                } else {
-                                    icons[j] = defaultIcon;
+                                // If this type hasn't been seen before, assign it a new color index
+                                if (!markerTypes.has(markerType)) {
+                                    markerTypes.set(markerType, typeCounter++);
                                 }
+
+                                // Get the color index for this marker type
+                                const colorIndex = markerTypes.get(markerType);
+
+                                // Create the icon URL with the appropriate color from the array
+                                const iconUrl = createCustomIconUrl(campusColors, colorIndex);
+                                icons[j] = createLeafletIcon(iconUrl);
                             })
                             .catch(() => {
                                 icons[j] = defaultIcon;
@@ -179,8 +176,6 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
                 // Update icons state incrementally to show progress
                 setMarkerIcons(prev => ({ ...prev, ...icons }));
             }
-
-            setLoadingMarkers(false);
         };
 
         if (treeCoordinates.length > 0) {
@@ -192,7 +187,7 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
         setLoading(true);
         setError("");
         try {
-            const response = await fetch(`http://16.170.225.66:3000/species/details/${treeGeoID + 1}`);
+            const response = await fetch(`http://localhost:3000/species/details/${treeGeoID + 1}`);
             const data = await response.json();
 
             if (!response.ok) {
@@ -205,11 +200,6 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
             setLoading(false);
         }
     };
-
-    // Calculate how many markers are loaded
-    const loadedMarkersCount = Object.keys(markerIcons).length;
-    const totalMarkersCount = treeCoordinates.length;
-    const loadingPercentage = Math.round((loadedMarkersCount / totalMarkersCount) * 100) || 0;
 
     return (
         <div className="h-full w-full relative rounded-lg">
@@ -237,25 +227,6 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
                     />
                 ))}
             </MapContainer>
-
-            {/* Loading overlay */}
-            {loadingMarkers && treeCoordinates.length > 0 && (
-                <div className="absolute top-5 left-1/2 transform -translate-x-1/2 bg-white p-3 rounded-lg shadow-md z-10 flex items-center space-x-3">
-                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-green-500"></div>
-                    <div>
-                        <div className="text-sm font-medium">Loading tree markers</div>
-                        <div className="h-2 w-48 bg-gray-200 rounded overflow-hidden">
-                            <div
-                                className="h-full bg-green-500 transition-all duration-300"
-                                style={{ width: `${loadingPercentage}%` }}
-                            ></div>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                            {loadedMarkersCount} of {totalMarkersCount} loaded ({loadingPercentage}%)
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Sidebar for Tree Details */}
             <div
@@ -302,8 +273,6 @@ const MapSection: React.FC<MapType> = ({ mapType }) => {
                                     <p className="text-sm text-green-700 mt-1">हिंदी: {selectedTree.hindiname}</p>
                                 )}
                             </div>
-
-
 
                             {/* Details section */}
                             <div className="space-y-3">

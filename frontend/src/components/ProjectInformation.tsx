@@ -9,7 +9,7 @@ const ProjectInformation: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        axios.get("http://16.170.225.66:3000/stats")
+        axios.get("http://localhost:3000/stats")
             .then((response) => {
                 setSpeciesCount(response.data.speciesCount);
                 setTreeCount(response.data.treeCount);
