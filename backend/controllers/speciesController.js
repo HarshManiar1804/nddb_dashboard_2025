@@ -15,7 +15,7 @@ exports.getSpeciesByBotany = async (req, res) => {
     }
 
     const result = await pool.query(
-      "SELECT id, scientificname FROM species WHERE botanyid = ANY($1)",
+      "SELECT id, scientificname, treename, hindiname FROM species WHERE botanyid = ANY($1)",
       [botanyIds]
     );
 

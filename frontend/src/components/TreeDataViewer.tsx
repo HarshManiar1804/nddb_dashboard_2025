@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTreeData } from "@/contexts/TreeDataContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, ChevronDown, Leaf, Trees } from "lucide-react"; // Added icons
+import { Loader2, ChevronDown, Leaf, Trees, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 const TreeDataViewer: React.FC = () => {
     const {
@@ -12,6 +13,10 @@ const TreeDataViewer: React.FC = () => {
         speciesList, selectedSpecies, setSelectedSpecies,
         loading
     } = useTreeData();
+
+    // Filter state
+    const [botanyFilter, setBotanyFilter] = useState("");
+    const [speciesFilter, setSpeciesFilter] = useState("");
 
     // Toggle botany selection
     const toggleBotanySelection = (id: string) => {
@@ -22,7 +27,10 @@ const TreeDataViewer: React.FC = () => {
 
     // Select all botany
     const selectAllBotany = () => {
-        setSelectedBotany(botanyList.map((botany) => botany.id.toString()));
+        const filteredBotany = botanyList
+            .filter(botany => botany.name.toLowerCase().includes(botanyFilter.toLowerCase()))
+            .map(botany => botany.id.toString());
+        setSelectedBotany(filteredBotany);
     };
 
     // Clear all botany selection
@@ -37,15 +45,32 @@ const TreeDataViewer: React.FC = () => {
         );
     };
 
-    // Select all species
+    // Select all species - Modified to use treename and hindiname for filtering
     const selectAllSpecies = () => {
-        setSelectedSpecies(speciesList.map((species) => species.id.toString()));
+        const filteredSpecies = speciesList
+            .filter(species =>
+                (species.treename?.toLowerCase() || "").includes(speciesFilter.toLowerCase()) ||
+                (species.hindiname?.toLowerCase() || "").includes(speciesFilter.toLowerCase())
+            )
+            .map(species => species.id.toString());
+        setSelectedSpecies(filteredSpecies);
     };
 
     // Clear all species selection
     const clearAllSpecies = () => {
         setSelectedSpecies([]);
     };
+
+    // Filter botany list
+    const filteredBotanyList = botanyList.filter(botany =>
+        botany.name.toLowerCase().includes(botanyFilter.toLowerCase())
+    );
+
+    // Filter species list - Modified to filter by treename or hindiname
+    const filteredSpeciesList = speciesList.filter(species =>
+        (species.treename?.toLowerCase() || "").includes(speciesFilter.toLowerCase()) ||
+        (species.hindiname?.toLowerCase() || "").includes(speciesFilter.toLowerCase())
+    );
 
     return (
         <div className="p-4 bg-white shadow-lg rounded-xl max-w-md mx-auto border border-gray-100">
@@ -78,17 +103,35 @@ const TreeDataViewer: React.FC = () => {
                             <div className="p-2 bg-gray-50 border-b">
                                 <h3 className="font-medium text-sm">Family Categories</h3>
                             </div>
+
+                            {/* Filter input for botany */}
+                            <div className="p-2 border-b flex items-center gap-2">
+                                <Search className="h-4 w-4 text-gray-400" />
+                                <Input
+                                    placeholder="Filter families..."
+                                    value={botanyFilter}
+                                    onChange={(e) => setBotanyFilter(e.target.value)}
+                                    className="h-8 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
+                                />
+                            </div>
+
                             <ScrollArea className="h-48 overflow-auto p-2">
-                                {botanyList.map((botany) => (
-                                    <div key={botany.id} className="flex items-center gap-2 py-1 px-1 hover:bg-gray-50 rounded">
-                                        <Checkbox
-                                            checked={selectedBotany.includes(botany.id.toString())}
-                                            onCheckedChange={() => toggleBotanySelection(botany.id.toString())}
-                                            className="text-green-600"
-                                        />
-                                        <span className="text-sm">{botany.name}</span>
+                                {filteredBotanyList.length === 0 ? (
+                                    <div className="flex justify-center items-center h-24 text-gray-500">
+                                        <p className="text-sm">No matches found</p>
                                     </div>
-                                ))}
+                                ) : (
+                                    filteredBotanyList.map((botany) => (
+                                        <div key={botany.id} className="flex items-center gap-2 py-1 px-1 hover:bg-gray-50 rounded">
+                                            <Checkbox
+                                                checked={selectedBotany.includes(botany.id.toString())}
+                                                onCheckedChange={() => toggleBotanySelection(botany.id.toString())}
+                                                className="text-green-600"
+                                            />
+                                            <span className="text-sm">{botany.name}</span>
+                                        </div>
+                                    ))
+                                )}
                             </ScrollArea>
                             <div className="flex justify-between p-2 bg-gray-50 border-t">
                                 <Button onClick={selectAllBotany} size="sm" variant="outline" className="text-xs">
@@ -127,6 +170,20 @@ const TreeDataViewer: React.FC = () => {
                             <div className="p-2 bg-gray-50 border-b">
                                 <h3 className="font-medium text-sm">Species List</h3>
                             </div>
+
+                            {/* Filter input for species - only shown when not loading and species list exists */}
+                            {!loading && speciesList.length > 0 && (
+                                <div className="p-2 border-b flex items-center gap-2">
+                                    <Search className="h-4 w-4 text-gray-400" />
+                                    <Input
+                                        placeholder="Filter by tree or Hindi name..."
+                                        value={speciesFilter}
+                                        onChange={(e) => setSpeciesFilter(e.target.value)}
+                                        className="h-8 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
+                                    />
+                                </div>
+                            )}
+
                             <ScrollArea className="h-48 overflow-auto p-2">
                                 {loading ? (
                                     <div className="flex justify-center items-center h-24">
@@ -137,15 +194,19 @@ const TreeDataViewer: React.FC = () => {
                                         <Trees className="w-8 h-8 mb-2 opacity-50" />
                                         <p className="text-sm">Select Family First</p>
                                     </div>
+                                ) : filteredSpeciesList.length === 0 ? (
+                                    <div className="flex justify-center items-center h-24 text-gray-500">
+                                        <p className="text-sm">No matches found</p>
+                                    </div>
                                 ) : (
-                                    speciesList.map((species) => (
+                                    filteredSpeciesList.map((species) => (
                                         <div key={species.id} className="flex items-center gap-2 py-1 px-1 hover:bg-gray-50 rounded">
                                             <Checkbox
                                                 checked={selectedSpecies.includes(species.id.toString())}
                                                 onCheckedChange={() => toggleSpeciesSelection(species.id.toString())}
                                                 className="text-[#00958F]"
                                             />
-                                            <span className="text-sm italic">{species.scientificname}</span>
+                                            <span className="text-sm italic">{species.treename}{" : "}{species.hindiname}</span>
                                         </div>
                                     ))
                                 )}

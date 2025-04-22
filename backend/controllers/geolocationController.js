@@ -13,7 +13,8 @@ exports.getGeolocationBySpecies = async (req, res) => {
         s.ID AS SpeciesID,
         s.TreeName,
         t.Latitude,
-        t.Longitude
+        t.Longitude,
+        t.id
       FROM 
         Trees_Geolocation t
       INNER JOIN 
@@ -22,6 +23,7 @@ exports.getGeolocationBySpecies = async (req, res) => {
         s.ID = ANY($1)
     `;
 
+    // Pass the array directly as a parameter
     const result = await pool.query(query, [speciesIDs]);
 
     res.json(result.rows);

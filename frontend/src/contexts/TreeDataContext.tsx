@@ -7,6 +7,7 @@ interface TreeCoordinates {
     latitude: number;
     longitude: number;
     treename: string;
+    id: number;
 }
 
 interface TreeDataContextType {
@@ -30,8 +31,8 @@ export const TreeDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const [treeCoordinates, setTreeCoordinates] = useState<TreeCoordinates[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
-    const backendUrl = 'http://16.170.225.66:3000';
-    // const backendUrl = 'http://localhost:3000';
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 
     // Fetch botany list on mount
     useEffect(() => {

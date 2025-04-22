@@ -3,13 +3,14 @@ import axios from "axios";
 import { Trees, FileText, Bird } from "lucide-react";
 
 const ProjectInformation: React.FC = () => {
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const [speciesCount, setSpeciesCount] = useState<number>(0);
     const [treeCount, setTreeCount] = useState<number>(0);
     const [birdCount, setBirdCount] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        axios.get("http://16.170.225.66:3000/stats")
+        axios.get(`${BACKEND_URL}/stats`)
             .then((response) => {
                 setSpeciesCount(response.data.speciesCount);
                 setTreeCount(response.data.treeCount);

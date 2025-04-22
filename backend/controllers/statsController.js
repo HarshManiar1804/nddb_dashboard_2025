@@ -8,7 +8,7 @@ exports.getStats = async (req, res) => {
     const treeResult = await pool.query(
       "SELECT COUNT(*) AS treeCount FROM Trees_Geolocation"
     );
-    const birdsResult = await pool.query("SELECT COUNT FROM Birds LIMIT 1");
+    const birdsResult = await pool.query("SELECT COUNT(*) FROM Birds ");
 
     const speciesCount = speciesResult.rows[0].speciescount;
     const treeCount = treeResult.rows[0].treecount;
